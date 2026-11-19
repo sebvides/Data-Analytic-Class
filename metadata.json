@@ -1,0 +1,6 @@
+{
+  "name": "Inversión en Medios Colombia - Dashboard Analítico y Predictivo",
+  "description": "Dashboard integral de análisis descriptivo, tendencias históricas (1995-2025) y modelos de proyección predictiva (2026-2030) para la inversión publicitaria en medios en Colombia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
