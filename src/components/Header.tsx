@@ -1,114 +1,105 @@
 import React from 'react';
-import { CurrencyMode } from '../types/media';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  FileSpreadsheet, 
-  FileText, 
-  Coins, 
-  Calendar,
-  Layers
-} from 'lucide-react';
+import { ActiveTab } from '../App';
 
 interface HeaderProps {
-  currencyMode: CurrencyMode;
-  onCurrencyChange: (mode: CurrencyMode) => void;
+  activeTab: ActiveTab;
+  onTabChange: (tab: ActiveTab) => void;
   onOpenReport: () => void;
-  onExportCSV: () => void;
 }
 
+const NAV_ITEMS: { id: ActiveTab; label: string }[] = [
+  { id: 'descriptive', label: 'Descriptivo' },
+  { id: 'trends', label: 'Tendencias' },
+  { id: 'forecast', label: 'Pronósticos' },
+  { id: 'data', label: 'Datos' },
+];
+
 export const Header: React.FC<HeaderProps> = ({
-  currencyMode,
-  onCurrencyChange,
+  activeTab,
+  onTabChange,
   onOpenReport,
-  onExportCSV,
 }) => {
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Brand & Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-inner">
-              <BarChart3 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold tracking-tight text-white">
-                  Inversión en Medios en Colombia
-                </h1>
-                <span className="text-xs text-slate-400 font-mono">1995 – 2025</span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Observatorio de Inversión Publicitaria · Análisis Descriptivo, Tendencias y Pronósticos 2026-2030
-              </p>
-            </div>
-          </div>
+    <header className="bg-[#FAF9F6]/95 backdrop-blur-xs border-b border-stone-200 sticky top-0 z-30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
+        {/* Zone 1: Single text element wordmark */}
+        <button
+          type="button"
+          onClick={() => onTabChange('descriptive')}
+          className="font-serif text-xl font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800"
+        >
+          Ágora Media
+        </button>
 
-          {/* Controls: Currency switch & Action buttons */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Currency Mode Selector */}
-            <div className="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700/80 text-xs">
+        {/* Zone 2: Concise single-line text navigation links */}
+        <nav
+          className="hidden md:flex items-center gap-7 text-sm font-medium"
+          aria-label="Secciones del informe"
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
               <button
+                key={item.id}
                 type="button"
-                onClick={() => onCurrencyChange('cop_nominal')}
-                className={`px-2.5 py-1.5 rounded-md font-medium transition-colors ${
-                  currencyMode === 'cop_nominal'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-300 hover:text-white'
+                onClick={() => onTabChange(item.id)}
+                className={`relative py-5 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800 ${
+                  isActive
+                    ? 'text-stone-950 font-semibold'
+                    : 'text-stone-500 hover:text-stone-900'
                 }`}
-                title="Valores históricos en Millones de COP sin ajuste inflacionario"
               >
-                COP Corrientes
+                <span>{item.label}</span>
+                {isActive && (
+                  <span
+                    className="absolute inset-x-0 bottom-0 h-0.5 bg-blue-800"
+                    aria-hidden="true"
+                  />
+                )}
               </button>
-              <button
-                type="button"
-                onClick={() => onCurrencyChange('cop_real_2025')}
-                className={`px-2.5 py-1.5 rounded-md font-medium transition-colors ${
-                  currencyMode === 'cop_real_2025'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-                title="Valores deflactados con IPC acumulado a poder adquisitivo de 2025"
-              >
-                COP Reales (Base 2025)
-              </button>
-              <button
-                type="button"
-                onClick={() => onCurrencyChange('usd')}
-                className={`px-2.5 py-1.5 rounded-md font-medium transition-colors ${
-                  currencyMode === 'usd'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-                title="Convertido a Millones de USD a la TRM promedio de cada año"
-              >
-                USD (TRM)
-              </button>
-            </div>
+            );
+          })}
+        </nav>
 
-            {/* Actions: Export & Report */}
-            <button
-              type="button"
-              onClick={onExportCSV}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition-colors"
-              title="Descargar dataset completo con variables calculadas en CSV"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Exportar CSV</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onOpenReport}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg shadow-sm transition-all"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Informe Ejecutivo</span>
-            </button>
-          </div>
+        {/* Zone 3: Single primary action */}
+        <div className="flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={onOpenReport}
+            className="px-4 py-2 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
+          >
+            Informe Ejecutivo
+          </button>
         </div>
       </div>
+
+      {/* Mobile navigation strip (below md) */}
+      <nav
+        className="md:hidden border-t border-stone-200 bg-[#FAF9F6] px-4 flex items-center gap-5 overflow-x-auto"
+        aria-label="Secciones del informe móvil"
+      >
+        {NAV_ITEMS.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onTabChange(item.id)}
+              className={`relative py-2.5 text-xs font-medium whitespace-nowrap shrink-0 cursor-pointer ${
+                isActive ? 'text-stone-950 font-semibold' : 'text-stone-500'
+              }`}
+            >
+              <span>{item.label}</span>
+              {isActive && (
+                <span
+                  className="absolute inset-x-0 bottom-0 h-0.5 bg-blue-800"
+                  aria-hidden="true"
+                />
+              )}
+            </button>
+          );
+        })}
+      </nav>
     </header>
   );
 };

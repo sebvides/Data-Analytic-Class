@@ -1,46 +1,35 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  CurrencyMode, 
-  MediaKey, 
-  ForecastModelType, 
-  MediaForecastResult 
+import {
+  CurrencyMode,
+  MediaKey,
+  ForecastModelType,
 } from '../types/media';
-import { 
-  RAW_MEDIA_DATA, 
-  MEDIA_METAS, 
-  ALL_MEDIA_KEYS, 
-  formatCurrencyValue, 
-  formatValueCompact, 
-  convertValue 
+import {
+  RAW_MEDIA_DATA,
+  MEDIA_METAS,
+  ALL_MEDIA_KEYS,
+  formatCurrencyValue,
+  formatValueCompact,
+  convertValue,
 } from '../data/mediaData';
-import { 
-  getAllMediaForecasts, 
-  getIndustryAggregateForecast, 
-  runForecastForMedia 
+import {
+  getAllMediaForecasts,
+  getIndustryAggregateForecast,
 } from '../utils/forecasting';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
 } from 'recharts';
-import { 
-  LineChart as LineChartIcon, 
-  Sliders, 
-  Calculator, 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle2, 
-  Info, 
-  ArrowRight,
-  Sparkles,
-  BarChart4
+import {
+  Calculator,
+  Info,
 } from 'lucide-react';
 
 interface ForecastViewProps {
@@ -51,10 +40,9 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
   const [selectedModel, setSelectedModel] = useState<ForecastModelType>('logistic_damped');
   const [selectedMedia, setSelectedMedia] = useState<MediaKey>('digital');
   const [scenarioMode, setScenarioMode] = useState<'base' | 'all_scenarios'>('all_scenarios');
-  const [horizonYears, setHorizonYears] = useState<number>(5); // 2026 to 2030
+  const [horizonYears] = useState<number>(5);
 
-  // Budget Simulator state
-  const [simTargetBudget, setSimTargetBudget] = useState<number>(5500000); // 5.5B COP
+  const [simTargetBudget, setSimTargetBudget] = useState<number>(5500000);
   const [simMix, setSimMix] = useState<Record<MediaKey, number>>({
     digital: 62,
     tvNacional: 16,
@@ -65,7 +53,6 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
     revistas: 0.5,
   });
 
-  // Calculate forecasts for all media
   const allForecasts = useMemo(
     () => getAllMediaForecasts(selectedModel, currencyMode, horizonYears),
     [selectedModel, currencyMode, horizonYears]
@@ -76,10 +63,8 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
     [allForecasts]
   );
 
-  // Current inspected media forecast
   const currentForecast = allForecasts[selectedMedia];
 
-  // Combined chart data for the selected media (historical 2018-2025 + forecast 2026-2030)
   const mediaSeriesData = useMemo(() => {
     const historicalSlice = currentForecast.historicalData
       .filter((h) => h.year >= 2018)
@@ -103,11 +88,9 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
       pessimistic: f.pessimistic,
     }));
 
-    // Merge without duplicating 2025
     return [...historicalSlice.filter((h) => h.year < 2025), ...forecastSlice];
   }, [currentForecast]);
 
-  // Aggregate Chart Data (2018 to 2030)
   const aggregateChartData = useMemo(() => {
     const hist2018 = RAW_MEDIA_DATA.filter((d) => d.year >= 2018).map((d) => ({
       year: d.year,
@@ -132,45 +115,38 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
     return [...hist2018.filter((h) => h.year < 2025), ...projSlice];
   }, [currencyMode, aggregateForecast]);
 
-  // Total forecast at 2030
   const proj2030 = aggregateForecast.find((p) => p.year === 2030);
   const total2030 = proj2030 ? proj2030.total : 1;
-
-  // Simulator mix sum
   const simMixSum = Object.values(simMix).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="space-y-6">
-      {/* Forecasting Model Controls Bar */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-8">
+      {/* Econometric Model Controls Bar */}
+      <section className="bg-white p-6 rounded-lg border border-stone-200">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <LineChartIcon className="w-4 h-4 text-blue-600" />
-              <h2 className="text-sm font-bold text-slate-900">
-                Parámetros y Modelos Econométricos de Pronóstico
-              </h2>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Proyecciones estadísticas del mix de inversión publicitaria hacia el horizonte 2026 – 2030
-            </p>
+            <div className="text-xs font-mono text-stone-500">Metodología Predictiva · 2026–2030</div>
+            <h2 className="font-serif text-xl font-semibold text-stone-950 mt-0.5">
+              Selección de Modelo Econométrico y Escenarios
+            </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Model Selector */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-500 font-medium">Modelo:</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label htmlFor="model-select" className="text-xs font-medium text-stone-600">
+                Modelo:
+              </label>
               <select
+                id="model-select"
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value as ForecastModelType)}
-                aria-label="Seleccionar modelo econométrico de pronóstico"
-                className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                className="text-xs font-medium bg-[#FAF9F6] border border-stone-300 rounded-md px-3 py-1.5 text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-blue-800"
               >
                 <option value="logistic_damped">
                   Curva Logística / Crecimiento Amortiguado (Recomendado)
                 </option>
                 <option value="linear_recent">
-                  Regresión Lineal Reciente (Tendencia 2018-2025)
+                  Regresión Lineal Reciente (2018–2025)
                 </option>
                 <option value="exponential_smoothing">
                   Suavizado Exponencial de Holt (Doble nivel)
@@ -181,276 +157,261 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
               </select>
             </div>
 
-            {/* Scenario toggle */}
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs">
+            <div className="inline-flex items-center p-1 bg-stone-100 border border-stone-200 rounded-lg text-xs">
               <button
+                type="button"
                 onClick={() => setScenarioMode('base')}
-                className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   scenarioMode === 'base'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-stone-950 shadow-2xs'
+                    : 'text-stone-600 hover:text-stone-950'
                 }`}
               >
                 Solo Base
               </button>
               <button
+                type="button"
                 onClick={() => setScenarioMode('all_scenarios')}
-                className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   scenarioMode === 'all_scenarios'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-stone-950 shadow-2xs'
+                    : 'text-stone-600 hover:text-stone-950'
                 }`}
-                title="Muestra intervalo de confianza 95% y escenarios optimista / pesimista"
+                title="Muestra bandas de confianza y escenarios optimista / pesimista"
               >
-                Escenarios & Bandas
+                Escenarios y Bandas
               </button>
             </div>
           </div>
         </div>
 
-        {/* Model explanation pill */}
-        <div className="mt-3.5 p-3 rounded-lg bg-blue-50/70 border border-blue-100 text-xs text-blue-900 flex items-start gap-2">
-          <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold">
-              {selectedModel === 'logistic_damped' && 'Modelo Logístico Amortiguado: '}
-              {selectedModel === 'linear_recent' && 'Regresión Lineal Ponderada: '}
-              {selectedModel === 'exponential_smoothing' && 'Suavizado Exponencial de Holt: '}
-              {selectedModel === 'cagr_trend' && 'Tasa Compuesta (CAGR 5A): '}
-            </span>
+        {/* Clean hairline methodological note (no thick left border or floating card) */}
+        <div className="mt-4 pt-4 border-t border-stone-200 text-xs text-stone-600 flex items-start gap-2.5 leading-relaxed">
+          <Info className="w-4 h-4 text-blue-800 shrink-0 mt-0.5" />
+          <p>
+            <strong className="text-stone-900">
+              {selectedModel === 'logistic_damped' && 'Nota metodológica · Modelo Logístico Amortiguado: '}
+              {selectedModel === 'linear_recent' && 'Nota metodológica · Regresión Lineal Ponderada: '}
+              {selectedModel === 'exponential_smoothing' && 'Nota metodológica · Suavizado Exponencial de Holt: '}
+              {selectedModel === 'cagr_trend' && 'Nota metodológica · Tasa Compuesta (CAGR 5A): '}
+            </strong>
             {selectedModel === 'logistic_damped' &&
-              'Modela la saturación natural de la penetración de internet en Digital (suavizando crecimientos infinitos) y fija un suelo de nicho para la prensa y revistas impresas.'}
+              'Modela la maduración natural de la penetración de internet en Digital (amortiguando crecimientos infinitos) y fija un suelo de nicho para la prensa y revistas impresas.'}
             {selectedModel === 'linear_recent' &&
-              'Ajusta la pendiente de los últimos 7 años (2018-2025), aislando la dinámica moderna de los años iniciales de monopolio televisivo.'}
+              'Ajusta la pendiente sobre los últimos 7 años (2018–2025), aislando la dinámica contemporánea del mercado frente a las décadas iniciales.'}
             {selectedModel === 'exponential_smoothing' &&
-              'Asigna mayor peso a las observaciones recientes con parámetros adaptativos de nivel y tendencia.'}
+              'Asigna mayor ponderación a las observaciones más recientes mediante parámetros adaptativos de nivel y tendencia.'}
             {selectedModel === 'cagr_trend' &&
-              'Extrapola a futuro la tasa compuesta de crecimiento anual observada en el periodo 2020 a 2025.'}
-          </div>
+              'Extrapola hacia 2030 la tasa compuesta de crecimiento anual observada en el último quinquenio (2020–2025).'}
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* Aggregate Industry Forecast Chart & 2030 Highlights */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Total Industry Chart */}
-        <div className="lg:col-span-8 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">
-                Proyección de la Inversión Publicitaria Total en Colombia (2025 – 2030)
-              </h2>
-              <p className="text-xs text-slate-500">
-                Línea histórica consolidada y abanico de incertidumbre hacia 2030
-              </p>
+      {/* Fig 05 Aggregate Forecast + 2030 Summary Column */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <article className="lg:col-span-8 bg-white p-6 rounded-lg border border-stone-200 flex flex-col justify-between">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-stone-100 pb-3 mb-4">
+              <div>
+                <div className="text-xs font-mono text-stone-500">Figura 05 · Consolidado Nacional</div>
+                <h2 className="font-serif text-lg font-semibold text-stone-950">
+                  Proyección de la Inversión Publicitaria Total (2025–2030)
+                </h2>
+              </div>
+              <span className="text-xs font-mono text-stone-500">Horizonte 5 años</span>
             </div>
-            <div className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">
-              Horizonte: 2026, 2027, 2028, 2029, 2030
+
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={aggregateChartData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="projBand" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.18} />
+                      <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
+                  <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#78716c' }} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#78716c' }}
+                    tickFormatter={(val) => formatValueCompact(val, currencyMode)}
+                  />
+                  <Tooltip
+                    formatter={(val: any, name: any) => [
+                      formatCurrencyValue(Number(val), currencyMode),
+                      name === 'historicalTotal'
+                        ? 'Histórico Real'
+                        : name === 'projectedTotal'
+                        ? 'Proyección Base'
+                        : name === 'optimistic'
+                        ? 'Escenario Optimista'
+                        : name === 'pessimistic'
+                        ? 'Escenario Pesimista'
+                        : name,
+                    ]}
+                    contentStyle={{
+                      backgroundColor: '#1c1917',
+                      borderColor: '#292524',
+                      borderRadius: '6px',
+                      color: '#fafaf9',
+                      fontSize: '11px',
+                    }}
+                  />
+                  {scenarioMode === 'all_scenarios' && (
+                    <>
+                      <Area type="monotone" dataKey="upperBound" stroke="none" fill="url(#projBand)" />
+                      <Line
+                        type="monotone"
+                        dataKey="optimistic"
+                        stroke="#047857"
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="pessimistic"
+                        stroke="#be123c"
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={false}
+                      />
+                    </>
+                  )}
+                  <Line
+                    type="monotone"
+                    dataKey="historicalTotal"
+                    name="historicalTotal"
+                    stroke="#1c1917"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, fill: '#1c1917' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="projectedTotal"
+                    name="projectedTotal"
+                    stroke="#1d4ed8"
+                    strokeWidth={2.5}
+                    strokeDasharray="5 5"
+                    dot={{ r: 3.5, fill: '#1d4ed8' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={aggregateChartData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="projBand" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.03} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#64748b' }} />
-                <YAxis
-                  tick={{ fontSize: 11, fill: '#64748b' }}
-                  tickFormatter={(val) => formatValueCompact(val, currencyMode)}
-                />
-                <Tooltip
-                  formatter={(val: any, name: any) => [
-                    formatCurrencyValue(Number(val), currencyMode),
-                    name === 'historicalTotal'
-                      ? 'Histórico Real'
-                      : name === 'projectedTotal'
-                      ? 'Proyección Base'
-                      : name === 'optimistic'
-                      ? 'Escenario Optimista'
-                      : name === 'pessimistic'
-                      ? 'Escenario Pesimista'
-                      : name,
-                  ]}
-                  contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '11px',
-                  }}
-                />
-                {scenarioMode === 'all_scenarios' && (
-                  <>
-                    <Area
-                      type="monotone"
-                      dataKey="upperBound"
-                      stroke="none"
-                      fill="url(#projBand)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="optimistic"
-                      stroke="#10b981"
-                      strokeWidth={1.5}
-                      strokeDasharray="4 4"
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="pessimistic"
-                      stroke="#f43f5e"
-                      strokeWidth={1.5}
-                      strokeDasharray="4 4"
-                      dot={false}
-                    />
-                  </>
-                )}
-                <Line
-                  type="monotone"
-                  dataKey="historicalTotal"
-                  name="historicalTotal"
-                  stroke="#0f172a"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, fill: '#0f172a' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="projectedTotal"
-                  name="projectedTotal"
-                  stroke="#2563eb"
-                  strokeWidth={2.5}
-                  strokeDasharray="5 5"
-                  dot={{ r: 3.5, fill: '#2563eb' }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-slate-500">
+          <div className="pt-4 border-t border-stone-200 flex flex-wrap items-center justify-center gap-5 text-[11px] text-stone-600">
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 bg-slate-900" />
-              <span>Histórico (2018-2025)</span>
+              <span className="w-3.5 h-0.5 bg-stone-900" aria-hidden="true" />
+              <span>Histórico (2018–2025)</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 bg-blue-600 border-dashed" />
-              <span className="font-semibold text-blue-600">Proyección Base (2026-2030)</span>
+              <span className="w-3.5 h-0.5 bg-blue-700 border-b border-dashed border-blue-700" aria-hidden="true" />
+              <span className="font-semibold text-blue-900">Proyección Base (2026–2030)</span>
             </div>
             {scenarioMode === 'all_scenarios' && (
               <>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-emerald-500 border-dashed" />
-                  <span className="text-emerald-700">Optimista (+12%)</span>
+                  <span className="w-3.5 h-0.5 bg-emerald-700" aria-hidden="true" />
+                  <span className="text-emerald-800">Optimista (+12%)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-rose-500 border-dashed" />
-                  <span className="text-rose-700">Pesimista (-12%)</span>
+                  <span className="w-3.5 h-0.5 bg-rose-700" aria-hidden="true" />
+                  <span className="text-rose-800">Pesimista (-12%)</span>
                 </div>
               </>
             )}
           </div>
-        </div>
+        </article>
 
-        {/* Right: Key Projections Summary for 2030 */}
-        <div className="lg:col-span-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-bold text-slate-900">
-                Horizonte 2030: Resumen Industria
-              </h2>
-              <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">
-                Pronóstico
-              </span>
+        {/* Right Summary Column: 2030 Outlook */}
+        <aside className="lg:col-span-4 bg-white rounded-lg border border-stone-200 flex flex-col justify-between overflow-hidden">
+          <div className="p-6 border-b border-stone-200">
+            <div className="text-xs font-mono text-stone-500">Síntesis de Cierre · 2030</div>
+            <h2 className="font-serif text-lg font-semibold text-stone-950 mt-0.5">
+              Horizonte Proyectado de Industria
+            </h2>
+          </div>
+
+          <div className="divide-y divide-stone-200 flex-1 flex flex-col justify-center">
+            <div className="p-6">
+              <div className="text-xs text-stone-500 font-medium">Inversión Total Estimada (2030)</div>
+              <div className="text-2xl font-serif font-semibold text-stone-950 mt-1 tabular-nums">
+                {formatCurrencyValue(proj2030?.total, currencyMode)}
+              </div>
+              <div className="text-xs font-mono text-emerald-700 font-semibold mt-1 tabular-nums">
+                +
+                {(
+                  ((proj2030?.total! - aggregateForecast[0].total) /
+                    aggregateForecast[0].total) *
+                  100
+                ).toFixed(1)}
+                % acumulado vs. 2025
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mb-4">
-              Estimación econométrica a 5 años
-            </p>
 
-            <div className="space-y-3">
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
-                <div className="text-[11px] text-slate-500 font-medium">Inversión Total Proyectada (2030)</div>
-                <div className="text-xl font-bold text-slate-900 mt-0.5">
-                  {formatCurrencyValue(proj2030?.total, currencyMode)}
-                </div>
-                <div className="text-xs text-emerald-600 font-semibold mt-0.5">
-                  +
+            <div className="p-6">
+              <div className="text-xs text-stone-500 font-medium">Digital Proyectado (2030)</div>
+              <div className="text-xl font-serif font-semibold text-blue-900 mt-1 tabular-nums">
+                {formatCurrencyValue(
+                  allForecasts.digital.forecastData.find((p) => p.year === 2030)?.value,
+                  currencyMode
+                )}
+              </div>
+              <div className="text-xs text-stone-600 mt-1 font-mono tabular-nums">
+                Cuota estimada:{' '}
+                <strong className="text-stone-950">
                   {(
-                    ((proj2030?.total! - aggregateForecast[0].total) /
-                      aggregateForecast[0].total) *
+                    (allForecasts.digital.forecastData.find((p) => p.year === 2030)?.value! /
+                      total2030) *
                     100
                   ).toFixed(1)}
-                  % acum. vs 2025
-                </div>
+                  %
+                </strong>{' '}
+                del mercado
               </div>
+            </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
-                <div className="text-[11px] text-slate-500 font-medium">Digital proyectado a 2030</div>
-                <div className="text-lg font-bold text-blue-600 mt-0.5">
-                  {formatCurrencyValue(
-                    allForecasts.digital.forecastData.find((p) => p.year === 2030)?.value,
-                    currencyMode
-                  )}
-                </div>
-                <div className="text-xs text-slate-600 mt-0.5">
-                  Cuota estimada:{' '}
-                  <span className="font-bold text-slate-900">
-                    {(
-                      (allForecasts.digital.forecastData.find((p) => p.year === 2030)?.value! /
-                        total2030) *
-                      100
-                    ).toFixed(1)}
-                    %
-                  </span>{' '}
-                  de la inversión
-                </div>
+            <div className="p-6">
+              <div className="text-xs text-stone-500 font-medium">Publicidad Exterior (OOH / DOOH)</div>
+              <div className="text-xl font-serif font-semibold text-stone-950 mt-1 tabular-nums">
+                {formatCurrencyValue(
+                  allForecasts.pubExterior.forecastData.find((p) => p.year === 2030)?.value,
+                  currencyMode
+                )}
               </div>
-
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/60">
-                <div className="text-[11px] text-slate-500 font-medium">Publicidad Exterior (OOH/DOOH)</div>
-                <div className="text-lg font-bold text-purple-600 mt-0.5">
-                  {formatCurrencyValue(
-                    allForecasts.pubExterior.forecastData.find((p) => p.year === 2030)?.value,
-                    currencyMode
-                  )}
-                </div>
-                <div className="text-xs text-slate-600 mt-0.5">
-                  CAGR proyectado: +{allForecasts.pubExterior.projectedCAGR}% anual
-                </div>
+              <div className="text-xs font-mono text-stone-600 mt-1 tabular-nums">
+                CAGR 2025–2030: +{allForecasts.pubExterior.projectedCAGR}% anual
               </div>
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-400 pt-3 border-t border-slate-100 flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Datos validados con series históricas 1995-2025</span>
+          <div className="px-6 py-3 bg-[#FAF9F6] border-t border-stone-200 text-[11px] text-stone-500">
+            Calibrado sobre serie histórica auditada 1995–2025
           </div>
-        </div>
+        </aside>
       </div>
 
-      {/* Individual Medium Detailed Inspector */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+      {/* Fig 06: Individual Medium Detailed Forecast */}
+      <article className="bg-white rounded-lg border border-stone-200 overflow-hidden">
+        <div className="p-6 border-b border-stone-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">
-              Pronóstico Detallado por Medio Individual
+            <div className="text-xs font-mono text-stone-500">Figura 06 · Desglose por Medio</div>
+            <h2 className="font-serif text-xl font-semibold text-stone-950 mt-0.5">
+              Pronóstico Individual: {MEDIA_METAS[selectedMedia].label}
             </h2>
-            <p className="text-xs text-slate-500">
-              Trayectoria histórica y cono de proyección específica para el medio seleccionado
-            </p>
           </div>
 
-          {/* Media selector buttons */}
           <div className="flex flex-wrap items-center gap-1.5">
             {ALL_MEDIA_KEYS.map((k) => (
               <button
+                type="button"
                 key={k}
                 onClick={() => setSelectedMedia(k)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   selectedMedia === k
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-stone-900 text-white'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 }`}
               >
                 {MEDIA_METAS[k].shortLabel}
@@ -459,37 +420,37 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
           </div>
         </div>
 
-        {/* Medium Hero Stats Banner */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/70">
-            <div className="text-[11px] text-slate-500 font-medium">Inversión 2025 (Cierre)</div>
-            <div className="text-base font-bold text-slate-900 mt-0.5">
+        {/* Clean 4-column summary strip (no nested card boxes) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-stone-200 bg-[#FAF9F6] border-b border-stone-200">
+          <div className="p-5">
+            <div className="text-[11px] text-stone-500 font-medium">Cierre 2025 (Real)</div>
+            <div className="text-base font-mono font-semibold text-stone-950 mt-1 tabular-nums">
               {formatCurrencyValue(currentForecast.historicalData.slice(-1)[0].value, currencyMode)}
             </div>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/70">
-            <div className="text-[11px] text-slate-500 font-medium">Proyección 2026 (1 Año)</div>
-            <div className="text-base font-bold text-blue-600 mt-0.5">
+          <div className="p-5">
+            <div className="text-[11px] text-stone-500 font-medium">Pronóstico 2026</div>
+            <div className="text-base font-mono font-semibold text-blue-900 mt-1 tabular-nums">
               {formatCurrencyValue(
                 currentForecast.forecastData.find((p) => p.year === 2026)?.value,
                 currencyMode
               )}
             </div>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/70">
-            <div className="text-[11px] text-slate-500 font-medium">Proyección 2030 (5 Años)</div>
-            <div className="text-base font-bold text-slate-900 mt-0.5">
+          <div className="p-5">
+            <div className="text-[11px] text-stone-500 font-medium">Pronóstico 2030</div>
+            <div className="text-base font-mono font-semibold text-stone-950 mt-1 tabular-nums">
               {formatCurrencyValue(
                 currentForecast.forecastData.find((p) => p.year === 2030)?.value,
                 currencyMode
               )}
             </div>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/70">
-            <div className="text-[11px] text-slate-500 font-medium">CAGR Proyectado (25-30)</div>
+          <div className="p-5">
+            <div className="text-[11px] text-stone-500 font-medium">CAGR Proyectado (25–30)</div>
             <div
-              className={`text-base font-bold mt-0.5 ${
-                currentForecast.projectedCAGR >= 0 ? 'text-emerald-600' : 'text-rose-600'
+              className={`text-base font-mono font-semibold mt-1 tabular-nums ${
+                currentForecast.projectedCAGR >= 0 ? 'text-emerald-700' : 'text-rose-700'
               }`}
             >
               {currentForecast.projectedCAGR >= 0 ? '+' : ''}
@@ -498,105 +459,108 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
           </div>
         </div>
 
-        {/* Medium Forecast Chart */}
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={mediaSeriesData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#64748b' }} />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#64748b' }}
-                tickFormatter={(val) => formatValueCompact(val, currencyMode)}
-              />
-              <Tooltip
-                formatter={(val: any, name: any) => [
-                  formatCurrencyValue(Number(val), currencyMode),
-                  name === 'historical'
-                    ? 'Histórico'
-                    : name === 'forecast'
-                    ? 'Pronóstico Base'
-                    : name === 'optimistic'
-                    ? 'Optimista'
-                    : name === 'pessimistic'
-                    ? 'Pesimista'
-                    : name,
-                ]}
-                contentStyle={{
-                  backgroundColor: '#0f172a',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  fontSize: '11px',
-                }}
-              />
-              {scenarioMode === 'all_scenarios' && (
-                <>
-                  <Line
-                    type="monotone"
-                    dataKey="optimistic"
-                    stroke="#10b981"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="pessimistic"
-                    stroke="#f43f5e"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                    dot={false}
-                  />
-                </>
-              )}
-              <Line
-                type="monotone"
-                dataKey="historical"
-                name="historical"
-                stroke={MEDIA_METAS[selectedMedia].color}
-                strokeWidth={2.5}
-                dot={{ r: 3, fill: MEDIA_METAS[selectedMedia].color }}
-              />
-              <Line
-                type="monotone"
-                dataKey="forecast"
-                name="forecast"
-                stroke={MEDIA_METAS[selectedMedia].color}
-                strokeWidth={2.5}
-                strokeDasharray="5 5"
-                dot={{ r: 3.5, fill: MEDIA_METAS[selectedMedia].color }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="p-6">
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={mediaSeriesData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#78716c' }} />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#78716c' }}
+                  tickFormatter={(val) => formatValueCompact(val, currencyMode)}
+                />
+                <Tooltip
+                  formatter={(val: any, name: any) => [
+                    formatCurrencyValue(Number(val), currencyMode),
+                    name === 'historical'
+                      ? 'Histórico'
+                      : name === 'forecast'
+                      ? 'Pronóstico Base'
+                      : name === 'optimistic'
+                      ? 'Optimista'
+                      : name === 'pessimistic'
+                      ? 'Pesimista'
+                      : name,
+                  ]}
+                  contentStyle={{
+                    backgroundColor: '#1c1917',
+                    borderColor: '#292524',
+                    borderRadius: '6px',
+                    color: '#fafaf9',
+                    fontSize: '11px',
+                  }}
+                />
+                {scenarioMode === 'all_scenarios' && (
+                  <>
+                    <Line
+                      type="monotone"
+                      dataKey="optimistic"
+                      stroke="#047857"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="pessimistic"
+                      stroke="#be123c"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      dot={false}
+                    />
+                  </>
+                )}
+                <Line
+                  type="monotone"
+                  dataKey="historical"
+                  name="historical"
+                  stroke={MEDIA_METAS[selectedMedia].color}
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: MEDIA_METAS[selectedMedia].color }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="forecast"
+                  name="forecast"
+                  stroke={MEDIA_METAS[selectedMedia].color}
+                  strokeWidth={2.5}
+                  strokeDasharray="5 5"
+                  dot={{ r: 3.5, fill: MEDIA_METAS[selectedMedia].color }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      </article>
 
-      {/* Comprehensive Multi-Media Forecast Table (2025 - 2030) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900">
-            Tabla Comparativa de Pronósticos por Medio (2025 – 2030)
+      {/* Tabla 03: Comprehensive Multi-Media Forecast Table (2025 - 2030) */}
+      <section className="bg-white rounded-lg border border-stone-200 overflow-hidden">
+        <div className="p-6 border-b border-stone-200">
+          <div className="text-xs font-mono text-stone-500">Tabla 03 · Proyecciones Anuales</div>
+          <h2 className="font-serif text-xl font-semibold text-stone-950 mt-0.5">
+            Matriz Comparativa de Pronósticos por Medio (2025–2030)
           </h2>
-          <p className="text-xs text-slate-500">
-            Valores proyectados año a año, tasa compuesta anual y cuota de mercado estimada al 2030
+          <p className="text-xs text-stone-500 mt-1">
+            Estimaciones anuales del modelo seleccionado, tasa compuesta quinquenal y participación esperada al 2030
           </p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <thead className="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200">
               <tr>
-                <th className="py-3 px-4">Medio</th>
-                <th className="py-3 px-3 text-right">2025 (Base)</th>
-                <th className="py-3 px-3 text-right">2026 (P)</th>
-                <th className="py-3 px-3 text-right">2027 (P)</th>
-                <th className="py-3 px-3 text-right">2028 (P)</th>
-                <th className="py-3 px-3 text-right">2029 (P)</th>
-                <th className="py-3 px-3 text-right font-bold text-slate-900">2030 (P)</th>
-                <th className="py-3 px-3 text-right">CAGR 25-30</th>
-                <th className="py-3 px-3 text-right font-bold text-blue-700">Cuota 2030</th>
+                <th className="py-3.5 px-5">Medio Publicitario</th>
+                <th className="py-3.5 px-3 text-right">2025 (Real)</th>
+                <th className="py-3.5 px-3 text-right">2026 (P)</th>
+                <th className="py-3.5 px-3 text-right">2027 (P)</th>
+                <th className="py-3.5 px-3 text-right">2028 (P)</th>
+                <th className="py-3.5 px-3 text-right">2029 (P)</th>
+                <th className="py-3.5 px-3 text-right font-bold text-stone-950">2030 (P)</th>
+                <th className="py-3.5 px-3 text-right">CAGR 25–30</th>
+                <th className="py-3.5 px-5 text-right font-bold text-blue-900">Cuota 2030</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-200 tabular-nums">
               {ALL_MEDIA_KEYS.map((k) => {
                 const fc = allForecasts[k];
                 const v2025 = fc.forecastData.find((p) => p.year === 2025)?.value || 0;
@@ -611,74 +575,76 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
                   <tr
                     key={k}
                     onClick={() => setSelectedMedia(k)}
-                    className={`hover:bg-slate-50/70 cursor-pointer ${
+                    className={`hover:bg-stone-50 cursor-pointer transition-colors ${
                       selectedMedia === k ? 'bg-blue-50/50' : ''
                     }`}
                   >
-                    <td className="py-3 px-4 font-medium text-slate-900 flex items-center gap-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: MEDIA_METAS[k].color }}
-                      />
-                      <span>{MEDIA_METAS[k].label}</span>
+                    <td className="py-3.5 px-5 font-medium text-stone-900">
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-xs shrink-0"
+                          style={{ backgroundColor: MEDIA_METAS[k].color }}
+                          aria-hidden="true"
+                        />
+                        <span>{MEDIA_METAS[k].label}</span>
+                      </div>
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-600">
+                    <td className="py-3.5 px-3 text-right font-mono text-stone-600">
                       {formatValueCompact(v2025, currencyMode)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">
+                    <td className="py-3.5 px-3 text-right font-mono text-stone-700">
                       {formatValueCompact(v2026, currencyMode)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">
+                    <td className="py-3.5 px-3 text-right font-mono text-stone-700">
                       {formatValueCompact(v2027, currencyMode)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">
+                    <td className="py-3.5 px-3 text-right font-mono text-stone-700">
                       {formatValueCompact(v2028, currencyMode)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-700">
+                    <td className="py-3.5 px-3 text-right font-mono text-stone-700">
                       {formatValueCompact(v2029, currencyMode)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">
+                    <td className="py-3.5 px-3 text-right font-mono font-bold text-stone-950">
                       {formatValueCompact(v2030, currencyMode)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono">
+                    <td className="py-3.5 px-3 text-right font-mono">
                       <span
                         className={`font-semibold ${
-                          fc.projectedCAGR >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                          fc.projectedCAGR >= 0 ? 'text-emerald-700' : 'text-rose-700'
                         }`}
                       >
                         {fc.projectedCAGR >= 0 ? '+' : ''}
                         {fc.projectedCAGR}%
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-blue-700">
+                    <td className="py-3.5 px-5 text-right font-mono font-bold text-blue-900">
                       {share2030.toFixed(1)}%
                     </td>
                   </tr>
                 );
               })}
 
-              {/* Total Row */}
-              <tr className="bg-slate-100/90 font-bold text-slate-900 border-t border-slate-300">
-                <td className="py-3 px-4">TOTAL INDUSTRIA</td>
-                <td className="py-3 px-3 text-right font-mono">
+              <tr className="bg-stone-100/90 font-bold text-stone-950 border-t border-stone-300">
+                <td className="py-3.5 px-5">TOTAL INDUSTRIA</td>
+                <td className="py-3.5 px-3 text-right font-mono">
                   {formatValueCompact(aggregateForecast[0]?.total, currencyMode)}
                 </td>
-                <td className="py-3 px-3 text-right font-mono">
+                <td className="py-3.5 px-3 text-right font-mono">
                   {formatValueCompact(aggregateForecast[1]?.total, currencyMode)}
                 </td>
-                <td className="py-3 px-3 text-right font-mono">
+                <td className="py-3.5 px-3 text-right font-mono">
                   {formatValueCompact(aggregateForecast[2]?.total, currencyMode)}
                 </td>
-                <td className="py-3 px-3 text-right font-mono">
+                <td className="py-3.5 px-3 text-right font-mono">
                   {formatValueCompact(aggregateForecast[3]?.total, currencyMode)}
                 </td>
-                <td className="py-3 px-3 text-right font-mono">
+                <td className="py-3.5 px-3 text-right font-mono">
                   {formatValueCompact(aggregateForecast[4]?.total, currencyMode)}
                 </td>
-                <td className="py-3 px-3 text-right font-mono text-blue-900">
+                <td className="py-3.5 px-3 text-right font-mono text-blue-950">
                   {formatValueCompact(aggregateForecast[5]?.total, currencyMode)}
                 </td>
-                <td className="py-3 px-3 text-right font-mono text-emerald-700">
+                <td className="py-3.5 px-3 text-right font-mono text-emerald-800">
                   +
                   {(
                     (Math.pow(
@@ -690,42 +656,42 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
                   ).toFixed(1)}
                   %
                 </td>
-                <td className="py-3 px-3 text-right font-mono text-blue-900">100.0%</td>
+                <td className="py-3.5 px-5 text-right font-mono text-blue-950">100.0%</td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      {/* Interactive Media Mix Budget Simulator */}
-      <div className="bg-slate-900 text-white p-5 rounded-xl shadow-md border border-slate-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+      {/* Dark Plate: Interactive Media Mix Budget Simulator */}
+      <section className="bg-stone-950 text-stone-100 p-6 sm:p-7 rounded-lg border border-stone-800">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-stone-800">
           <div>
-            <div className="flex items-center gap-2">
-              <Calculator className="w-4 h-4 text-blue-400" />
-              <h2 className="text-sm font-bold text-white tracking-wide">
-                Simulador Interactivo de Media Mix & Presupuesto Publicitario
-              </h2>
+            <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
+              <Calculator className="w-3.5 h-3.5 text-blue-400" />
+              <span>Herramienta de Planeación de Agencia</span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Planifica un presupuesto objetivo y ajusta la distribución porcentual para evaluar la asignación de recursos
-            </p>
+            <h2 className="font-serif text-xl font-semibold text-white mt-1">
+              Simulador Interactivo de Distribución de Presupuesto (Media Mix)
+            </h2>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Presupuesto a simular:</span>
+            <label htmlFor="sim-budget-input" className="text-xs text-stone-400">
+              Presupuesto objetivo:
+            </label>
             <input
+              id="sim-budget-input"
               type="number"
               value={simTargetBudget}
               onChange={(e) => setSimTargetBudget(Math.max(0, Number(e.target.value)))}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-white w-40 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+              className="bg-stone-900 border border-stone-700 rounded-md px-3 py-1.5 text-xs font-mono font-semibold text-white w-36 focus:ring-2 focus:ring-blue-500 focus:outline-hidden tabular-nums"
             />
-            <span className="text-xs text-slate-400 font-mono">M COP</span>
+            <span className="text-xs text-stone-400 font-mono">M COP</span>
           </div>
         </div>
 
-        {/* Sliders for each media */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-5">
           {ALL_MEDIA_KEYS.map((k) => {
             const meta = MEDIA_METAS[k];
             const currentPct = simMix[k] || 0;
@@ -734,17 +700,20 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
             return (
               <div
                 key={k}
-                className="p-3 bg-slate-800/80 rounded-lg border border-slate-700/60"
+                className="p-4 bg-stone-900/70 rounded-md border border-stone-800"
               >
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <div className="flex items-center gap-2">
                     <span
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2.5 h-2.5 rounded-xs shrink-0"
                       style={{ backgroundColor: meta.color }}
+                      aria-hidden="true"
                     />
-                    <span className="font-semibold text-slate-200">{meta.label}</span>
+                    <span className="font-semibold text-stone-200">{meta.label}</span>
                   </div>
-                  <span className="font-mono font-bold text-blue-400">{currentPct}%</span>
+                  <span className="font-mono font-semibold text-blue-300 tabular-nums">
+                    {currentPct}%
+                  </span>
                 </div>
 
                 <input
@@ -753,15 +722,16 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
                   max={80}
                   step={0.5}
                   value={currentPct}
+                  aria-label={`Porcentaje asignado a ${meta.label}`}
                   onChange={(e) =>
                     setSimMix({ ...simMix, [k]: Number(e.target.value) })
                   }
-                  className="w-full accent-blue-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
+                  className="w-full accent-blue-500 h-1.5 bg-stone-800 rounded-lg cursor-pointer"
                 />
 
-                <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2 font-mono">
+                <div className="flex items-center justify-between text-[11px] text-stone-400 mt-2.5 font-mono tabular-nums">
                   <span>Asignado:</span>
-                  <span className="font-bold text-white">
+                  <span className="font-semibold text-white">
                     {formatCurrencyValue(allocatedAmount, currencyMode)}
                   </span>
                 </div>
@@ -770,27 +740,26 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
           })}
         </div>
 
-        {/* Simulator Validation Bar */}
-        <div className="p-3 rounded-lg bg-slate-800 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400">Suma total del Mix asignado:</span>
+        <div className="pt-4 border-t border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 tabular-nums">
+            <span className="text-stone-400">Suma total del mix asignado:</span>
             <span
               className={`font-mono font-bold text-sm ${
-                Math.abs(simMixSum - 100) < 0.1 ? 'text-emerald-400' : 'text-amber-400'
+                Math.abs(simMixSum - 100) < 0.1 ? 'text-emerald-400' : 'text-amber-300'
               }`}
             >
               {simMixSum.toFixed(1)}% / 100%
             </span>
             {Math.abs(simMixSum - 100) >= 0.1 && (
-              <span className="text-[11px] text-amber-300">
+              <span className="text-[11px] text-amber-200 font-mono">
                 (Diferencia: {(100 - simMixSum).toFixed(1)}%)
               </span>
             )}
           </div>
 
           <button
+            type="button"
             onClick={() => {
-              // Normalize to exactly 100%
               if (simMixSum > 0) {
                 const normalized: Record<MediaKey, number> = {} as any;
                 ALL_MEDIA_KEYS.forEach((k) => {
@@ -799,12 +768,12 @@ export const ForecastView: React.FC<ForecastViewProps> = ({ currencyMode }) => {
                 setSimMix(normalized);
               }
             }}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors cursor-pointer text-xs"
+            className="px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white font-semibold rounded-md transition-colors cursor-pointer text-xs whitespace-nowrap"
           >
             Normalizar al 100%
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

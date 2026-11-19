@@ -1,55 +1,33 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  CurrencyMode, 
-  MediaKey 
-} from '../types/media';
-import { 
-  RAW_MEDIA_DATA, 
-  MEDIA_METAS, 
-  ALL_MEDIA_KEYS, 
-  formatCurrencyValue, 
-  formatValueCompact, 
-  convertValue 
+import { CurrencyMode, MediaKey } from '../types/media';
+import {
+  RAW_MEDIA_DATA,
+  MEDIA_METAS,
+  ALL_MEDIA_KEYS,
+  formatCurrencyValue,
+  formatValueCompact,
+  convertValue,
 } from '../data/mediaData';
-import { 
-  calculateMacroCorrelations, 
-  calculateHHI, 
-  calculateCAGR 
+import {
+  calculateMacroCorrelations,
+  calculateHHI,
+  calculateCAGR,
 } from '../utils/statistics';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  Legend, 
-  ScatterChart, 
-  Scatter, 
-  ZAxis 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
-import { 
-  TrendingUp, 
-  Layers, 
-  Activity, 
-  Globe, 
-  DollarSign, 
-  Clock, 
-  CheckSquare, 
-  Square,
-  HelpCircle,
-  Sparkles
-} from 'lucide-react';
 
 interface TrendViewProps {
   currencyMode: CurrencyMode;
 }
 
 export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
-  // Active media filter for main trend chart
   const [activeMedia, setActiveMedia] = useState<Record<MediaKey, boolean>>({
     digital: true,
     tvNacional: true,
@@ -63,9 +41,7 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
   const [scaleType, setScaleType] = useState<'linear' | 'indexed'>('linear');
   const [macroVar, setMacroVar] = useState<'internet' | 'trm' | 'ipc'>('internet');
 
-  // Multi-series trend chart data
   const trendData = useMemo(() => {
-    // For indexed scale, base year is 2014 (first year with all 7 media recorded)
     const baseYearRec = RAW_MEDIA_DATA.find((d) => d.year === 2014);
 
     return RAW_MEDIA_DATA.map((r) => {
@@ -90,16 +66,14 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
     });
   }, [currencyMode, scaleType]);
 
-  // Correlations
   const correlations = useMemo(() => calculateMacroCorrelations(), []);
   const hhiData = useMemo(() => calculateHHI(), []);
 
-  // Eras CAGR Analysis
   const eras = [
-    { name: 'Era Tradicional (1995-2007)', startYear: 1995, endYear: 2007 },
-    { name: 'Emergencia Digital (2008-2014)', startYear: 2008, endYear: 2014 },
-    { name: 'Disrupción y Pandemia (2015-2020)', startYear: 2015, endYear: 2020 },
-    { name: 'Hegemonía Digital & DOOH (2021-2025)', startYear: 2021, endYear: 2025 },
+    { name: 'Era Tradicional (1995–2007)', startYear: 1995, endYear: 2007 },
+    { name: 'Emergencia Digital (2008–2014)', startYear: 2008, endYear: 2014 },
+    { name: 'Disrupción y Pandemia (2015–2020)', startYear: 2015, endYear: 2020 },
+    { name: 'Hegemonía Digital y DOOH (2021–2025)', startYear: 2021, endYear: 2025 },
   ];
 
   const erasCAGR = useMemo(() => {
@@ -124,13 +98,6 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
       return results;
     });
   }, [currencyMode]);
-
-  // Toggle helpers
-  const toggleAll = (state: boolean) => {
-    const updated: Record<MediaKey, boolean> = { ...activeMedia };
-    ALL_MEDIA_KEYS.forEach((k) => (updated[k] = state));
-    setActiveMedia(updated);
-  };
 
   const selectPreset = (type: 'digital_vs_tv' | 'traditional' | 'print' | 'all') => {
     const next: Record<MediaKey, boolean> = {
@@ -159,117 +126,141 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Historical Milestones Banner */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-4 h-4 text-blue-600" />
-          <h2 className="text-sm font-bold text-slate-900">
-            Hitos y Transiciones Clave del Mercado Colombiano (1995 – 2025)
+    <div className="space-y-8">
+      {/* Editorial Timeline: Four Market Eras */}
+      <section className="bg-white border border-stone-200 rounded-lg overflow-hidden">
+        <div className="p-6 border-b border-stone-200">
+          <div className="text-xs font-mono text-stone-500">Crónica Sectorial · 1995–2025</div>
+          <h2 className="font-serif text-xl font-semibold text-stone-950 mt-0.5">
+            Cuatro Ciclos Históricos de la Pauta Publicitaria en Colombia
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/60">
-            <div className="font-bold text-blue-700 font-mono mb-1">1998 - 2007 · Era TV & Prensa</div>
-            <p className="text-slate-600 leading-relaxed">
-              Consolidación de canales privados (Caracol y RCN). La TV Nacional representaba más del 50% de la inversión y la Prensa superaba los $500 mil millones COP.
+
+        <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-stone-200 text-xs">
+          <div className="p-6">
+            <div className="font-mono text-blue-900 font-semibold mb-1.5 tabular-nums">
+              01 · 1995–2007
+            </div>
+            <h3 className="font-serif text-sm font-semibold text-stone-950 mb-2">
+              Hegemonía Televisiva e Impresa
+            </h3>
+            <p className="text-stone-600 leading-relaxed">
+              Consolidación de canales privados nacionales. La TV Nacional captaba más del 50% de la inversión y la Prensa superaba los $500 mil millones COP.
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/60">
-            <div className="font-bold text-blue-700 font-mono mb-1">2008 - 2014 · Llegada de Digital</div>
-            <p className="text-slate-600 leading-relaxed">
-              Primer registro de inversión digital en 2008 con $40.6 mil millones COP (2.1% share). En 2014, Digital ya alcanzaba el 8.8% y la TV Nacional marcaba su pico histórico ($1.15 billones COP).
+
+          <div className="p-6">
+            <div className="font-mono text-blue-900 font-semibold mb-1.5 tabular-nums">
+              02 · 2008–2014
+            </div>
+            <h3 className="font-serif text-sm font-semibold text-stone-950 mb-2">
+              Irrupción del Ecosistema Digital
+            </h3>
+            <p className="text-stone-600 leading-relaxed">
+              Primer registro digital en 2008 ($40.6 mil millones COP, 2.1% cuota). En 2014 Digital alcanza el 8.8% mientras TV Nacional marca su récord ($1.15B).
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/60">
-            <div className="font-bold text-blue-700 font-mono mb-1">2020 · Choque Pandemia</div>
-            <p className="text-slate-600 leading-relaxed">
-              COVID-19 provocó caídas de hasta -55% en Publicidad Exterior y -40% en Prensa. Sin embargo, Digital creció +15.8% acelerando la migración de presupuestos.
+
+          <div className="p-6">
+            <div className="font-mono text-blue-900 font-semibold mb-1.5 tabular-nums">
+              03 · 2015–2020
+            </div>
+            <h3 className="font-serif text-sm font-semibold text-stone-950 mb-2">
+              Punto de Inflexión y Pandemia
+            </h3>
+            <p className="text-stone-600 leading-relaxed">
+              En 2020 el confinamiento contrajo Exterior (-55%) y Prensa (-40%), mientras Digital creció +15.8% acelerando la migración de presupuestos.
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/60">
-            <div className="font-bold text-blue-700 font-mono mb-1">2021 - 2025 · Hegemonía Digital</div>
-            <p className="text-slate-600 leading-relaxed">
-              En 2021 Digital superó a TV Nacional por primera vez. En 2025 alcanza el récord de $3.07 billones COP (59.7% share), mientras Publicidad Exterior (DOOH) resurge (+12.4%).
+
+          <div className="p-6">
+            <div className="font-mono text-blue-900 font-semibold mb-1.5 tabular-nums">
+              04 · 2021–2025
+            </div>
+            <h3 className="font-serif text-sm font-semibold text-stone-950 mb-2">
+              Primacía Digital y Resurgimiento DOOH
+            </h3>
+            <p className="text-stone-600 leading-relaxed">
+              Digital superó a TV Nacional en 2021 y cierra 2025 en $3.07 billones COP (59.7% cuota), acompañado del fuerte rebote de Publicidad Exterior (+12.4%).
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main Multi-Media Evolution Chart */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+      {/* Fig 03: Multi-Media Evolution Chart */}
+      <article className="bg-white p-6 rounded-lg border border-stone-200">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-4 border-b border-stone-100 mb-4">
           <div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
-              <h2 className="text-sm font-bold text-slate-900">
-                Evolución Histórica Multimedio (1995 – 2025)
-              </h2>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <div className="text-xs font-mono text-stone-500">Figura 03 · Series Longitudinales</div>
+            <h2 className="font-serif text-xl font-semibold text-stone-950 mt-0.5">
+              Evolución Comparada de la Inversión por Medio (1995–2025)
+            </h2>
+            <p className="text-xs text-stone-500 mt-1">
               {scaleType === 'linear'
-                ? `Valores en ${
+                ? `Cifras expresadas en ${
                     currencyMode === 'usd'
-                      ? 'Millones de USD'
+                      ? 'Millones de USD (TRM promedio anual)'
                       : currencyMode === 'cop_real_2025'
-                      ? 'Millones COP Reales (2025)'
+                      ? 'Millones COP Reales (poder adquisitivo 2025)'
                       : 'Millones COP Corrientes'
                   }`
-                : 'Índice de Crecimiento Relativo (Base 2014 = 100)'}
+                : 'Índice de crecimiento normalizado (Año base 2014 = 100)'}
             </p>
           </div>
 
-          {/* Quick presets and scale toggle */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center p-1 bg-stone-100 border border-stone-200 rounded-lg text-xs">
               <button
+                type="button"
                 onClick={() => setScaleType('linear')}
-                className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   scaleType === 'linear'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-stone-950 shadow-2xs'
+                    : 'text-stone-600 hover:text-stone-950'
                 }`}
               >
-                Escala Real
+                Escala Monetaria
               </button>
               <button
+                type="button"
                 onClick={() => setScaleType('indexed')}
-                className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   scaleType === 'indexed'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-stone-950 shadow-2xs'
+                    : 'text-stone-600 hover:text-stone-950'
                 }`}
-                title="Normaliza todos los medios a 100 en 2014 para comparar velocidades de crecimiento"
+                title="Normaliza todos los medios a 100 en 2014 para comparar tasas de expansión"
               >
                 Base 2014 = 100
               </button>
             </div>
 
-            <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
-
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-400 mr-1">Filtros:</span>
+            <div className="inline-flex items-center gap-1.5 text-xs">
               <button
+                type="button"
                 onClick={() => selectPreset('all')}
-                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-medium"
+                className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-md font-medium whitespace-nowrap cursor-pointer"
               >
                 Todos
               </button>
               <button
+                type="button"
                 onClick={() => selectPreset('digital_vs_tv')}
-                className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-[11px] font-medium"
+                className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-md font-medium whitespace-nowrap cursor-pointer"
               >
-                Digital vs TV
+                Digital vs. TV
               </button>
               <button
+                type="button"
                 onClick={() => selectPreset('traditional')}
-                className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded text-[11px] font-medium"
+                className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-md font-medium whitespace-nowrap cursor-pointer"
               >
                 Tradicionales
               </button>
               <button
+                type="button"
                 onClick={() => selectPreset('print')}
-                className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[11px] font-medium"
+                className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-md font-medium whitespace-nowrap cursor-pointer"
               >
                 Impresos
               </button>
@@ -277,27 +268,27 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
           </div>
         </div>
 
-        {/* Media filter toggles */}
-        <div className="flex flex-wrap items-center gap-2 mb-4 p-2.5 bg-slate-50/70 rounded-lg border border-slate-100 text-xs">
-          <span className="text-slate-500 font-medium mr-1 text-[11px]">Medios visibles:</span>
+        {/* Media filter checkboxes */}
+        <div className="flex flex-wrap items-center gap-2 mb-5 text-xs">
+          <span className="text-stone-500 font-medium mr-1">Series activas:</span>
           {ALL_MEDIA_KEYS.map((k) => {
             const isChecked = activeMedia[k];
             const meta = MEDIA_METAS[k];
             return (
               <button
+                type="button"
                 key={k}
                 onClick={() => setActiveMedia({ ...activeMedia, [k]: !isChecked })}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all font-medium cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border transition-colors font-medium whitespace-nowrap cursor-pointer ${
                   isChecked
-                    ? 'bg-white text-slate-800 shadow-2xs border border-slate-200'
-                    : 'text-slate-400 hover:text-slate-600 bg-transparent'
+                    ? 'bg-white text-stone-900 border-stone-300'
+                    : 'bg-stone-50 text-stone-400 border-stone-200 hover:text-stone-600'
                 }`}
               >
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{
-                    backgroundColor: isChecked ? meta.color : '#cbd5e1',
-                  }}
+                <span
+                  className="w-2.5 h-2.5 rounded-xs shrink-0"
+                  style={{ backgroundColor: isChecked ? meta.color : '#d6d3d1' }}
+                  aria-hidden="true"
                 />
                 <span>{meta.label}</span>
               </button>
@@ -305,25 +296,22 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
           })}
         </div>
 
-        {/* The Recharts Line Chart */}
         <div className="h-80 sm:h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
               <XAxis
                 dataKey="year"
                 tickLine={false}
-                axisLine={{ stroke: '#cbd5e1' }}
-                tick={{ fontSize: 11, fill: '#64748b' }}
+                axisLine={{ stroke: '#d6d3d1' }}
+                tick={{ fontSize: 11, fill: '#78716c' }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 11, fill: '#64748b' }}
+                tick={{ fontSize: 11, fill: '#78716c' }}
                 tickFormatter={(val) =>
-                  scaleType === 'indexed'
-                    ? `${val}`
-                    : formatValueCompact(val, currencyMode)
+                  scaleType === 'indexed' ? `${val}` : formatValueCompact(val, currencyMode)
                 }
               />
               <Tooltip
@@ -334,9 +322,10 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
                   MEDIA_METAS[name as MediaKey]?.label || name,
                 ]}
                 contentStyle={{
-                  backgroundColor: '#0f172a',
-                  borderRadius: '8px',
-                  color: '#fff',
+                  backgroundColor: '#1c1917',
+                  borderColor: '#292524',
+                  borderRadius: '6px',
+                  color: '#fafaf9',
                   fontSize: '11px',
                 }}
               />
@@ -351,8 +340,8 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
                     name={k}
                     stroke={meta.color}
                     strokeWidth={k === 'digital' || k === 'tvNacional' ? 2.5 : 1.8}
-                    dot={{ r: 2.5, fill: meta.color }}
-                    activeDot={{ r: 5 }}
+                    dot={{ r: 2, fill: meta.color }}
+                    activeDot={{ r: 4.5 }}
                     connectNulls={false}
                   />
                 );
@@ -360,168 +349,166 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </article>
 
-      {/* CAGR by Eras Table + Herfindahl Index */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: CAGR by Historical Eras */}
-        <div className="lg:col-span-8 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">
-                Tasa de Crecimiento Anual Compuesto (CAGR) por Eras
-              </h2>
-              <p className="text-xs text-slate-500">
-                Rendimiento anualizado en cada periodo histórico
-              </p>
-            </div>
-            <span className="text-[11px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-              % Anual
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="py-2.5 px-3">Periodo / Era</th>
-                  <th className="py-2.5 px-2 text-right">Total Ind.</th>
-                  <th className="py-2.5 px-2 text-right text-blue-600">Digital</th>
-                  <th className="py-2.5 px-2 text-right text-emerald-600">TV Nac.</th>
-                  <th className="py-2.5 px-2 text-right text-amber-600">Radio</th>
-                  <th className="py-2.5 px-2 text-right text-purple-600">Exterior</th>
-                  <th className="py-2.5 px-2 text-right text-rose-600">Prensa</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {erasCAGR.map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50">
-                    <td className="py-2.5 px-3 font-medium text-slate-800">{row.eraName}</td>
-                    <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-900">
-                      {row.totalInv !== null ? `${row.totalInv > 0 ? '+' : ''}${row.totalInv}%` : '-'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right font-mono text-blue-600 font-semibold">
-                      {row.digital !== null ? `${row.digital > 0 ? '+' : ''}${row.digital}%` : '-'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right font-mono text-slate-700">
-                      {row.tvNacional !== null ? `${row.tvNacional > 0 ? '+' : ''}${row.tvNacional}%` : '-'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right font-mono text-slate-700">
-                      {row.radio !== null ? `${row.radio > 0 ? '+' : ''}${row.radio}%` : '-'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right font-mono text-slate-700">
-                      {row.pubExterior !== null ? `${row.pubExterior > 0 ? '+' : ''}${row.pubExterior}%` : '-'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right font-mono text-rose-600">
-                      {row.prensa !== null ? `${row.prensa > 0 ? '+' : ''}${row.prensa}%` : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Right: Herfindahl-Hirschman Concentration Index */}
-        <div className="lg:col-span-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+      {/* Tabla 02: CAGR by Eras + Fig 04: HHI Index */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <article className="lg:col-span-8 bg-white p-6 rounded-lg border border-stone-200 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-bold text-slate-900">
-                Índice de Concentración (HHI)
-              </h2>
-              <span className="text-xs text-blue-600 font-mono font-bold">
-                {hhiData[hhiData.length - 1].hhi} pts (2025)
+            <div className="flex items-baseline justify-between gap-2 border-b border-stone-100 pb-3 mb-4">
+              <div>
+                <div className="text-xs font-mono text-stone-500">Tabla 02 · Dinámica Anualizada</div>
+                <h2 className="font-serif text-lg font-semibold text-stone-950">
+                  Crecimiento Anual Compuesto (CAGR) por Era Histórica
+                </h2>
+              </div>
+              <span className="text-xs font-mono text-stone-500">Tasa anual (%)</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200">
+                  <tr>
+                    <th className="py-3 px-3">Periodo Histórico</th>
+                    <th className="py-3 px-2 text-right">Industria</th>
+                    <th className="py-3 px-2 text-right text-blue-700">Digital</th>
+                    <th className="py-3 px-2 text-right text-emerald-700">TV Nac.</th>
+                    <th className="py-3 px-2 text-right text-amber-700">Radio</th>
+                    <th className="py-3 px-2 text-right text-purple-700">Exterior</th>
+                    <th className="py-3 px-3 text-right text-rose-700">Prensa</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-200 tabular-nums">
+                  {erasCAGR.map((row, i) => (
+                    <tr key={i} className="hover:bg-stone-50">
+                      <td className="py-3 px-3 font-medium text-stone-900">{row.eraName}</td>
+                      <td className="py-3 px-2 text-right font-mono font-bold text-stone-950">
+                        {row.totalInv !== null ? `${row.totalInv > 0 ? '+' : ''}${row.totalInv}%` : '—'}
+                      </td>
+                      <td className="py-3 px-2 text-right font-mono text-blue-700 font-semibold">
+                        {row.digital !== null ? `${row.digital > 0 ? '+' : ''}${row.digital}%` : '—'}
+                      </td>
+                      <td className="py-3 px-2 text-right font-mono text-stone-700">
+                        {row.tvNacional !== null ? `${row.tvNacional > 0 ? '+' : ''}${row.tvNacional}%` : '—'}
+                      </td>
+                      <td className="py-3 px-2 text-right font-mono text-stone-700">
+                        {row.radio !== null ? `${row.radio > 0 ? '+' : ''}${row.radio}%` : '—'}
+                      </td>
+                      <td className="py-3 px-2 text-right font-mono text-stone-700">
+                        {row.pubExterior !== null ? `${row.pubExterior > 0 ? '+' : ''}${row.pubExterior}%` : '—'}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-rose-700">
+                        {row.prensa !== null ? `${row.prensa > 0 ? '+' : ''}${row.prensa}%` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-stone-500 italic mt-4 pt-3 border-t border-stone-100">
+            Nota: Los guiones (—) corresponden a periodos previos al registro oficial del medio en el observatorio nacional.
+          </p>
+        </article>
+
+        {/* Fig 04: HHI Index */}
+        <article className="lg:col-span-4 bg-white p-6 rounded-lg border border-stone-200 flex flex-col justify-between">
+          <div>
+            <div className="flex items-baseline justify-between gap-2 border-b border-stone-100 pb-3 mb-3">
+              <div>
+                <div className="text-xs font-mono text-stone-500">Figura 04</div>
+                <h2 className="font-serif text-lg font-semibold text-stone-950">
+                  Índice de Concentración (HHI)
+                </h2>
+              </div>
+              <span className="text-xs font-mono font-semibold text-blue-900 tabular-nums">
+                {hhiData[hhiData.length - 1].hhi} pts
               </span>
             </div>
-            <p className="text-xs text-slate-500 mb-3">
-              Mide la concentración del mercado (escala 0 a 10.000). Valores &gt; 2.500 indican alta concentración.
+            <p className="text-xs text-stone-500 mb-3">
+              Escala Herfindahl-Hirschman (0–10.000). Valores superiores a 2.500 indican alta concentración.
             </p>
 
             <div className="h-44 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={hhiData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#64748b' }} />
-                  <YAxis domain={[1000, 6500]} tick={{ fontSize: 10, fill: '#64748b' }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
+                  <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#78716c' }} />
+                  <YAxis domain={[1000, 6500]} tick={{ fontSize: 10, fill: '#78716c' }} />
                   <Tooltip
                     formatter={(val: any) => [`${val} pts`, 'Índice HHI']}
                     contentStyle={{
-                      backgroundColor: '#0f172a',
-                      borderRadius: '8px',
-                      color: '#fff',
+                      backgroundColor: '#1c1917',
+                      borderColor: '#292524',
+                      borderRadius: '6px',
+                      color: '#fafaf9',
                       fontSize: '11px',
                     }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="hhi"
-                    stroke="#4f46e5"
-                    strokeWidth={2}
-                    dot={false}
-                  />
+                  <Line type="monotone" dataKey="hhi" stroke="#1e3a8a" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="mt-3 p-2.5 rounded-lg bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900">
-            <span className="font-bold">Interpretación:</span> La industria pasó de un monopolio televisivo en los 90 (HHI &gt; 6.000) a un mercado muy diversificado entre 2010 y 2018 (HHI ~2.500), y ahora reconcentrado por la hegemonía digital (HHI &gt; 4.000).
+          <div className="mt-4 pt-3 border-t border-stone-200 text-xs text-stone-600 leading-relaxed">
+            <strong className="text-stone-900">Lectura de mercado:</strong> Tras diversificarse entre 2010 y 2018 (~2.500 pts), el ecosistema vuelve a concentrarse por la hegemonía digital (&gt;4.000 pts).
           </div>
-        </div>
+        </article>
       </div>
 
-      {/* Macroeconomic Sensitivity & Correlation Matrix */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      {/* Macroeconomic Correlations */}
+      <section className="bg-white p-6 rounded-lg border border-stone-200">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-stone-100 mb-5">
           <div>
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-emerald-600" />
-              <h2 className="text-sm font-bold text-slate-900">
-                Sensibilidad y Correlación Macroeconómica
-              </h2>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Coeficiente de correlación de Pearson (-1.0 a +1.0) entre la inversión en medios y variables macro
+            <div className="text-xs font-mono text-stone-500">Análisis Econométrico · Correlación de Pearson</div>
+            <h2 className="font-serif text-xl font-semibold text-stone-950 mt-0.5">
+              Sensibilidad Frente a Indicadores Macroeconómicos
+            </h2>
+            <p className="text-xs text-stone-500 mt-1">
+              Grado de asociación lineal (-1.00 a +1.00) entre la inversión por medio y las variables estructurales del país
             </p>
           </div>
 
-          {/* Macro selector */}
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs">
+          <div className="inline-flex items-center p-1 bg-stone-100 border border-stone-200 rounded-lg text-xs shrink-0">
             <button
+              type="button"
               onClick={() => setMacroVar('internet')}
-              className={`px-3 py-1 rounded font-medium transition-colors ${
+              className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 macroVar === 'internet'
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-stone-950 shadow-2xs'
+                  : 'text-stone-600 hover:text-stone-950'
               }`}
             >
-              Penetración Internet (%)
+              Penetración Internet
             </button>
             <button
+              type="button"
               onClick={() => setMacroVar('trm')}
-              className={`px-3 py-1 rounded font-medium transition-colors ${
+              className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 macroVar === 'trm'
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-stone-950 shadow-2xs'
+                  : 'text-stone-600 hover:text-stone-950'
               }`}
             >
-              TRM (Dólar COP)
+              TRM (COP/USD)
             </button>
             <button
+              type="button"
               onClick={() => setMacroVar('ipc')}
-              className={`px-3 py-1 rounded font-medium transition-colors ${
+              className={`px-3 py-1 rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 macroVar === 'ipc'
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-stone-950 shadow-2xs'
+                  : 'text-stone-600 hover:text-stone-950'
               }`}
             >
-              Inflación (IPC %)
+              Inflación (IPC)
             </button>
           </div>
         </div>
 
-        {/* Correlation Bars */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-y sm:divide-y-0 sm:divide-x divide-stone-200 border border-stone-200 rounded-md overflow-hidden">
           {correlations.map((c) => {
             const corrVal =
               macroVar === 'internet'
@@ -534,41 +521,38 @@ export const TrendView: React.FC<TrendViewProps> = ({ currencyMode }) => {
             const intensity = Math.abs(corrVal);
 
             return (
-              <div
-                key={c.mediaKey}
-                className="p-3 rounded-lg border border-slate-200/80 bg-slate-50/60 flex flex-col justify-between"
-              >
-                <div className="text-xs font-semibold text-slate-800 truncate" title={c.label}>
+              <div key={c.mediaKey} className="p-4 bg-[#FAF9F6] flex flex-col justify-between">
+                <div className="text-xs font-semibold text-stone-800 truncate" title={c.label}>
                   {c.label}
                 </div>
-                <div className="my-2">
-                  <div className="text-lg font-bold font-mono text-slate-900">
+                <div className="my-3">
+                  <div className="text-lg font-mono font-semibold text-stone-950 tabular-nums">
                     {corrVal > 0 ? '+' : ''}
                     {corrVal.toFixed(2)}
                   </div>
-                  <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">
+                  <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden mt-1.5">
                     <div
                       className={`h-full rounded-full ${
-                        isPositive ? 'bg-blue-600' : 'bg-rose-500'
+                        isPositive ? 'bg-blue-800' : 'bg-rose-700'
                       }`}
                       style={{ width: `${Math.min(intensity * 100, 100)}%` }}
                     />
                   </div>
                 </div>
-                <div className="text-[10px] text-slate-500">
+                <div className="text-[11px] text-stone-500">
                   {intensity > 0.8
-                    ? 'Muy alta'
+                    ? 'Asociación muy alta'
                     : intensity > 0.5
-                    ? 'Moderada'
+                    ? 'Asociación moderada'
                     : intensity > 0.2
-                    ? 'Baja'
-                    : 'Sin relación'}
+                    ? 'Asociación baja'
+                    : 'Sin relación lineal'}
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </section>
     </div>
   );
 };
